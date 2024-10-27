@@ -31,32 +31,31 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
 
     function onStop() {}
 
-
     // onSelect has too many details about model; they all should be hidden (probably in the model)
     function onSelect() {
-        var showInitialMenu = _model.pairedDevice == null;
-        System.println("onSelect showInitialMenu: " + showInitialMenu);
-        
-        var isScanning = _model.isScanning();
-        if (showInitialMenu) {
-            if (isScanning) {
-                System.println("Disable scanning");
-                Ble.setScanState(Ble.SCAN_STATE_OFF);
-            } else {
+        System.println("onSelect");
+
+        System.println("APP_STATE_IDLE = " + self._model.app_state);
+
+        switch (self._model.app_state) {
+            case APP_STATE_IDLE: {
                 // start scanning
                 System.println("Start scanning...");
                 Ble.setScanState(Ble.SCAN_STATE_SCANNING);
+                break;
             }
-        } else {
-            // do action
-            System.println("Perfrom action on BLE device.");
+            case APP_STATE_CONNECTED: {
+                // do action
+                System.println("Perfrom action on BLE device.");
 
-            // -- XXX debug,
-            System.println("Services list:");
-            var uuids = self._model.serviceUUIDsAsArray();
-            System.println(uuids);
+                // -- XXX debug,
+                System.println("Services list:");
+                var uuids = self._model.serviceUUIDsAsArray();
+                System.println(uuids);
 
-            self._model.write([0x30 + self.getNextDiodkiNumer(), 0x00]b);
+                self._model.write([0x30 + self.getNextDiodkiNumer(), 0x00]b);
+                break;
+            }
         }
 
         return true;

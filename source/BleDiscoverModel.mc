@@ -7,11 +7,18 @@ const DEVICE_NAME = "Bramator";
 const SERVICE_UUID = "00001234-0000-1000-8000-00805F9B34FB";
 const CHARACTERISTIC_UUID = "00005678-0000-1000-8000-00805F9B34FB";
 
+enum {
+    APP_STATE_IDLE = "IDLE",
+    APP_STATE_SCANNING = "SCANNING",
+    APP_STATE_CONNECTING = "CONNECTING",
+    APP_STATE_CONNECTED = "CONNECTED"
+}
+
 class BleDiscoverModel extends Ble.BleDelegate {
+    var app_state = APP_STATE_IDLE;
+
     // is the watch scanning for BLE devices?
-    var _scanState;
-    // result of the last call to setScanState(). STATUS_SUCCESS = 0, other states are fails
-    var _status;
+    var _scanState as Ble.ScanState = Ble.SCAN_STATE_OFF;
 
     var pairedDevice as Ble.Device?;
 
@@ -30,7 +37,6 @@ class BleDiscoverModel extends Ble.BleDelegate {
         BleDelegate.initialize();
 
         _scanState = Ble.SCAN_STATE_OFF;
-        _status = -1;
     }
 
     // XXX TODO: for me onStart suggest tht this is some kind of callback invoced on start. maybe change to start();
@@ -114,6 +120,13 @@ class BleDiscoverModel extends Ble.BleDelegate {
         WatchUi.requestUpdate();
     }
 
+    function setAppState(state) {
+        var oldState = self.app_state;
+        self.app_state = state;
+
+        System.println("setAppState from " + oldState + " to " + state);
+    }
+
     /**
      * Called when device got connected or disconnected.
      */
@@ -126,18 +139,34 @@ class BleDiscoverModel extends Ble.BleDelegate {
             // remember paired device:
             self.pairedDevice = device;
             System.println("device connected");
+            setAppState(APP_STATE_CONNECTED);
         } else {
             // disconnected, forget bleDevice
             System.println("Disconnected! Clearing bleDevice.");
             self.pairedDevice = null;
+            setAppState(APP_STATE_IDLE);
+        }
+        WatchUi.requestUpdate();
+    }
+
+    /**
+     * Update scan state (and app state) acoordingly.
+     */
+    function updateScanState(isConnected as Boolean) as Void {
+        if (isConnected) {
+            self.app_state = APP_STATE_SCANNING;
+        } else {
+            if (self.app_state == APP_STATE_SCANNING or self.app_state == APP_STATE_CONNECTED) {
+                self.app_state = APP_STATE_IDLE;
+            }
         }
     }
 
     // TODO XXX when starting scanning again, we probably want to disconnect/forget about last paired bramator
     function onScanStateChange(scanState, status) {
         System.println("onScanStateChange: " + scanState + ", " + status);
-        _scanState = scanState;
-        _status = status;
+
+        updateScanState(scanState == Ble.SCAN_STATE_SCANNING);
         WatchUi.requestUpdate();
     }
 

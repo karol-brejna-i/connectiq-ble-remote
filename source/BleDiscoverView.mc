@@ -7,7 +7,7 @@ using Toybox.WatchUi;
 using Toybox.BluetoothLowEnergy as Ble;
 
 class BleDiscoverView extends WatchUi.View {
-    hidden var _xpos;
+    hidden var _xcenter;
     hidden var _font;
     hidden var _ljust;
     hidden var _rjust;
@@ -22,7 +22,7 @@ class BleDiscoverView extends WatchUi.View {
     }
 
     function onLayout(dc) {
-        _xpos = dc.getWidth() / 3;
+        _xcenter = dc.getWidth() / 2;
 
         _font = Graphics.FONT_XTINY;
         _ljust = Graphics.TEXT_JUSTIFY_LEFT;
@@ -33,73 +33,51 @@ class BleDiscoverView extends WatchUi.View {
         _viewHeight = dc.getHeight();
     }
 
+    function showTextCentered(dc, ypos, text) {
+        dc.drawText(_xcenter, ypos, _font, text, _cjust);
+    }
     function drawInitialMenu(dc, isScanning) {
-        System.println("Initial menu.");
+        System.println("drawInitialMenu");
         var ypos = dc.getHeight() / 2 - (3 * _lineHeight) / 2;
-
-        dc.drawText(dc.getWidth() / 2, ypos, _font, Lang.format("SELECT to $1$ scanning", [isScanning ? "STOP" : "START"]), _cjust);
+        showTextCentered(dc, ypos, "SELECT to start scanning");
         ypos += _lineHeight;
-        dc.drawText(dc.getWidth() / 2, ypos, _font, "BACK to exit", _cjust);
+        showTextCentered(dc, ypos, "BACK to exit");
     }
 
     function drawActionMenu(dc) {
         System.println("drawActionMenu");
+
         var ypos = dc.getHeight() / 2 - (3 * _lineHeight) / 2;
-
-        dc.drawText(0, ypos, _font, _model._status, _ljust);
+        showTextCentered(dc, ypos, "SELECT to issue action");
         ypos += _lineHeight;
-        dc.drawText(0, ypos, _font, _model.pairedDevice, _ljust);
-
-        var services = _model.pairedDevice.getServices();
-        if (services != null) {
-            dc.setColor(Graphics.COLOR_GREEN, Graphics.COLOR_BLACK);
-            dc.fillCircle(dc.getWidth() / 2, 10, 10);
-            dc.drawText(0, ypos, _font, "services:", _ljust);
-            for (var result = services.next(); result != null; result = services.next()) {
-                ypos += _lineHeight;
-                dc.drawText(0, ypos, _font, result, _ljust);
-            }
-        } else {
-            dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_RED);
-            dc.fillCircle(dc.getWidth() / 2, 10, 10);
-            dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
-        }
+        showTextCentered(dc, ypos, "BACK to exit");
     }
 
-    /**
-     * States:
-     *    IDLE - nothing is happening in the app
-     *    SCANNING - looking for Bramator
-     *    Connecting - BLE device found, trying to connect to it
-     *    CONNECTED - BLE device connected, can perfrom actions on it (OPEN GATE, DISCONNECT)
-     *
-     */
     function onUpdate(dc) {
+        System.println("onUpdate: " + self._model.app_state);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
-        
-        var showInitialMenu = _model.pairedDevice == null;
-        System.println("show initial: " + showInitialMenu);
-
-        var isScanning = _model.isScanning();
-
-        if (showInitialMenu) {
-            drawInitialMenu(dc, isScanning);
-        } else {
-            drawActionMenu(dc);
-        }
 
         var color;
-
-        if (_model.pairedDevice != null) {
-            color = Graphics.COLOR_GREEN;
-        } else if (isScanning) {
-            color = Graphics.COLOR_ORANGE;
-        } else {
-            color = Graphics.COLOR_RED;
+        switch (self._model.app_state) {
+            case APP_STATE_IDLE: {
+                drawInitialMenu(dc, true);
+                color = Graphics.COLOR_LT_GRAY;
+                break;
+            }
+            case APP_STATE_CONNECTED: {
+                drawActionMenu(dc);
+                color = Graphics.COLOR_GREEN;
+                break;
+            }
+            default: {
+                color = Graphics.COLOR_ORANGE;
+            }
         }
 
-        dc.setColor(color, color);
-        dc.fillCircle(dc.getWidth() - 20, dc.getHeight() / 2, 10);
+        // show app state
+        var ypos = 40;
+        dc.setColor(color, Graphics.COLOR_BLACK);
+        dc.drawText(_xcenter, ypos, _font, self._model.app_state, _cjust);
     }
 }
