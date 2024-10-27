@@ -1,7 +1,7 @@
+import Toybox.Lang;
 using Toybox.System;
 using Toybox.WatchUi;
 using Toybox.BluetoothLowEnergy as Ble;
-import Toybox.Lang;
 
 const DEVICE_NAME = "Bramator";
 const SERVICE_UUID = "00001234-0000-1000-8000-00805F9B34FB";

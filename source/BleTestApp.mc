@@ -1,10 +1,5 @@
-import Toybox.Application;
-import Toybox.Lang;
-import Toybox.WatchUi;
 using Toybox.Application;
-using Toybox.Graphics;
 using Toybox.System;
-using Toybox.WatchUi;
 using Toybox.BluetoothLowEnergy as Ble;
 
 class BleTestApp extends Application.AppBase {
