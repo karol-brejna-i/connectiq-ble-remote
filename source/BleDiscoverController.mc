@@ -8,17 +8,6 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
     hidden var _view;
     hidden var _model;
 
-    // XXX TODO: hax
-    var diodkiNumer as Number = 0;
-    function getNextDiodkiNumer() {
-        self.diodkiNumer = diodkiNumer + 1;
-        if (self.diodkiNumer > 3) {
-            self.diodkiNumer = 0;
-        }
-
-        return self.diodkiNumer;
-    }
-
     function initialize(model) {
         BehaviorDelegate.initialize();
         _model = model;
@@ -48,12 +37,8 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
                 // do action
                 System.println("Perfrom action on BLE device.");
 
-                // -- XXX debug,
-                System.println("Services list:");
-                var uuids = self._model.serviceUUIDsAsArray();
-                System.println(uuids);
-
-                self._model.write([0x30 + self.getNextDiodkiNumer(), 0x00]b);
+                self._model.sendData();
+                WatchUi.requestUpdate();
                 break;
             }
         }

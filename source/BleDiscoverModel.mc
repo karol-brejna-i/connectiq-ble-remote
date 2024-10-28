@@ -17,10 +17,9 @@ enum {
 class BleDiscoverModel extends Ble.BleDelegate {
     var app_state = APP_STATE_IDLE;
 
-    // is the watch scanning for BLE devices?
-    var _scanState as Ble.ScanState = Ble.SCAN_STATE_OFF;
-
     var pairedDevice as Ble.Device?;
+
+    var payloadIdx as Number = 0;
 
     var profile = {
         :uuid => Ble.stringToUuid(SERVICE_UUID),
@@ -35,8 +34,6 @@ class BleDiscoverModel extends Ble.BleDelegate {
     function initialize() {
         System.println("Initializing bledelegate");
         BleDelegate.initialize();
-
-        _scanState = Ble.SCAN_STATE_OFF;
     }
 
     // XXX TODO: for me onStart suggest tht this is some kind of callback invoced on start. maybe change to start();
@@ -99,8 +96,20 @@ class BleDiscoverModel extends Ble.BleDelegate {
         return false;
     }
 
-    function isScanning() {
-        return _scanState != Ble.SCAN_STATE_OFF;
+    function getNextPayloadIdx() {
+        self.payloadIdx = payloadIdx + 1;
+        if (self.payloadIdx > 3) {
+            self.payloadIdx = 0;
+        }
+
+        return self.payloadIdx;
+    }
+
+    function sendData() as Number {
+        var idx = self.getNextPayloadIdx();
+        var payload = [0x30 + idx, 0x00]b;
+        write(payload);
+        return payloadIdx;
     }
 
     /*****************************************
