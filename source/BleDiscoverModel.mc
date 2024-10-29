@@ -16,9 +16,7 @@ enum {
 
 class BleDiscoverModel extends Ble.BleDelegate {
     var app_state = APP_STATE_IDLE;
-
     var pairedDevice as Ble.Device?;
-
     var payloadIdx as Number = 0;
 
     var profile = {

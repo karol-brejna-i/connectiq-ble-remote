@@ -9,11 +9,8 @@ class BleDiscoverView extends WatchUi.View {
     hidden var _centerX;
     hidden var _centerY;
     hidden var _font;
-    hidden var _ljust;
-    hidden var _rjust;
-    hidden var _cjust;
     hidden var _lineHeight;
-    hidden var _viewHeight;
+
     hidden var _model;
 
     function initialize(model) {
@@ -26,21 +23,16 @@ class BleDiscoverView extends WatchUi.View {
         _centerY = dc.getHeight() / 2;
 
         _font = Graphics.FONT_XTINY;
-        _ljust = Graphics.TEXT_JUSTIFY_LEFT;
-        _rjust = Graphics.TEXT_JUSTIFY_RIGHT;
-        _cjust = Graphics.TEXT_JUSTIFY_CENTER;
-
         _lineHeight = dc.getFontHeight(_font);
-        _viewHeight = dc.getHeight();
     }
 
     function showTextCentered(dc, ypos, text) {
-        dc.drawText(_centerX, ypos, _font, text, _cjust);
+        dc.drawText(_centerX, ypos, _font, text, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     function drawInitialMenu(dc) {
         System.println("drawInitialMenu");
-        var ypos = dc.getHeight() / 2 - (3 * _lineHeight) / 2;
+        var ypos = _centerY - (2 * _lineHeight) / 2;
         showTextCentered(dc, ypos, "SELECT to start scanning");
         ypos += _lineHeight;
         showTextCentered(dc, ypos, "BACK to exit");
@@ -87,7 +79,7 @@ class BleDiscoverView extends WatchUi.View {
         // show app state
         var ypos = 40;
         dc.setColor(color, Graphics.COLOR_BLACK);
-        dc.drawText(_centerX, ypos, _font, self._model.app_state, _cjust);
+        dc.drawText(_centerX, ypos, _font, self._model.app_state, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     // angle in radians
