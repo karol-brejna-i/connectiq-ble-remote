@@ -31,7 +31,7 @@ class BleDiscoverView extends WatchUi.View {
     }
 
     function drawInitialMenu(dc) {
-        System.println("drawInitialMenu");
+        Debug.log("View.drawInitialMenu");
         var ypos = _centerY - (2 * _lineHeight) / 2;
         showTextCentered(dc, ypos, "SELECT to start scanning");
         ypos += _lineHeight;
@@ -41,7 +41,7 @@ class BleDiscoverView extends WatchUi.View {
     }
 
     function drawActionMenu(dc) {
-        System.println("drawActionMenu");
+        Debug.log("View.drawActionMenu");
 
         var ypos = dc.getHeight() / 2 - (3 * _lineHeight) / 2;
         showTextCentered(dc, ypos, "SELECT to issue action");
@@ -55,7 +55,7 @@ class BleDiscoverView extends WatchUi.View {
     }
 
     function onUpdate(dc) {
-        System.println("onUpdate: " + self._model.app_state);
+        Debug.log("View.onUpdate: " + self._model.app_state);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 

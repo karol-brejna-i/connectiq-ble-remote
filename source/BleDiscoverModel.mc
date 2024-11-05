@@ -23,20 +23,19 @@ class BleDiscoverModel extends Ble.BleDelegate {
         :uuid => Ble.stringToUuid(SERVICE_UUID),
         :characteristics => [
             {
-                :uuid => Ble.stringToUuid(CHARACTERISTIC_UUID)
-                // :descriptors => [Ble.cccdUuid()]
+                :uuid => Ble.stringToUuid(CHARACTERISTIC_UUID),
+                :descriptors => [Ble.cccdUuid()]
             }
         ]
     };
 
     function initialize() {
-        System.println("Initializing bledelegate");
+        Debug.log("Initializing BleDelegate.");
         BleDelegate.initialize();
     }
 
-    // XXX TODO: for me onStart suggest tht this is some kind of callback invoced on start. maybe change to start();
-    function onStart() {
-        System.println("blemodel onstart");
+    function start() {
+        Debug.log("BleDelegate onStart");
         Ble.registerProfile(self.profile);
     }
 
@@ -55,29 +54,39 @@ class BleDiscoverModel extends Ble.BleDelegate {
         return array;
     }
 
+    function dumpArray(a as Array) {
+        for (var i = 0; i < a.size(); i += 1) {
+            Debug.log(a[i].toString());
+        }
+    }
+
     private function connect(sr as Ble.ScanResult) {
-        System.println("connect");
+        Debug.log("connect");
         Ble.setScanState(Ble.SCAN_STATE_OFF);
         Ble.pairDevice(sr);
     }
 
     function write(data) {
-        System.println("write: " + data);
+        Debug.log("write: " + data);
 
         if (pairedDevice == null) {
-            System.println("write: not connected");
+            Debug.log("write: not connected");
             return;
         }
 
-        var service = pairedDevice.getService(Ble.stringToUuid(SERVICE_UUID));
-        System.println("service: " + service);
-        var ch = service.getCharacteristic(Ble.stringToUuid(CHARACTERISTIC_UUID));
-        System.println("Characteristic: " + ch);
+        Debug.log("Dumping connected device info:");
+        printPairedDeviceInfo();
+
+        var service = self.pairedDevice.getService(Ble.stringToUuid(SERVICE_UUID));
+        Debug.log("service: " + service);
+        var chUUID = Ble.stringToUuid(CHARACTERISTIC_UUID);
+        var ch = service.getCharacteristic(chUUID);
+        Debug.log("Characteristic: " + ch);
         try {
             ch.requestWrite(data, { :writeType => Ble.WRITE_TYPE_DEFAULT });
         } catch (ex) {
-            System.println(ex.getErrorMessage());
-            System.println("write: can't start char write");
+            Debug.log(ex.getErrorMessage());
+            Debug.log("write: can't start char write");
         }
     }
 
@@ -87,7 +96,7 @@ class BleDiscoverModel extends Ble.BleDelegate {
     function matchDevice(sr as Ble.ScanResult) {
         var name = sr.getDeviceName();
         if (name != null && name.equals(DEVICE_NAME)) {
-            System.println("Device matched.");
+            Debug.log("Device matched.");
             return true;
         }
 
@@ -103,7 +112,38 @@ class BleDiscoverModel extends Ble.BleDelegate {
         return self.payloadIdx;
     }
 
+    function debugBleDeviceInfo(device as Ble.Device?) {
+        if (device != null) {
+            Debug.log("BD: I have a paried device. " + device.getName());
+        } else {
+            Debug.log("BD: No paired device.");
+            return;
+        }
+
+        var services = device.getServices();
+        if (services != null) {
+            Debug.log("BD: I have services iterator.");
+        } else {
+            Debug.log("BD: NO services iterator.");
+        }
+
+        
+        var uuids = createArrayFromIterator(services);
+        Debug.log("BD: Services list: " + Pretty.dumps(uuids));
+    
+
+        //       for (var result = services.next(); result != null; result = services.next()) {
+        //     ypos += _lineHeight;
+        //     dc.drawText(0, ypos, _font, result, _ljust);
+        // }
+    }
+
+    function printPairedDeviceInfo() {
+        self.debugBleDeviceInfo(self.pairedDevice);
+    }
+
     function sendData() as Number {
+        Debug.log("sendData");
         var idx = self.getNextPayloadIdx();
         var payload = [0x30 + idx, 0x00]b;
         write(payload);
@@ -114,9 +154,12 @@ class BleDiscoverModel extends Ble.BleDelegate {
      * BleDelegate callbacks
      */
     function onScanResults(scanResults) {
-        System.println("onScanResults");
+        Debug.log("onScanResults");
         for (var result = scanResults.next(); result != null; result = scanResults.next()) {
+            Debug.log("onScanResults. Incpecting scanned device..." + Pretty.dumps(result));
+            
             if (result instanceof Ble.ScanResult) {
+                Debug.log("onScanResults. scanned device name: " + result.getDeviceName());
                 if (matchDevice(result)) {
                     connect(result);
 
@@ -131,25 +174,28 @@ class BleDiscoverModel extends Ble.BleDelegate {
         var oldState = self.app_state;
         self.app_state = state;
 
-        System.println("setAppState from " + oldState + " to " + state);
+        Debug.log("setAppState from " + oldState + " to " + state);
     }
 
     /**
      * Called when device got connected or disconnected.
      */
     function onConnectedStateChanged(device as Ble.Device, state as Ble.ConnectionState) {
-        System.println("connected: " + state);
+        // CONNECTION_STATE_CONNECTED
+        var stateDescription = state == Ble.CONNECTION_STATE_CONNECTED ? "OK" : state;
+        Debug.log("onConnectedStateChanged. connected: " + stateDescription);
         if (device != null) {
-            System.println("Get device name = " + device.getName());
+            Debug.log("Get device name = " + device.getName());
         }
         if (state == Ble.CONNECTION_STATE_CONNECTED) {
             // remember paired device:
             self.pairedDevice = device;
-            System.println("device connected");
+            Debug.log("device connected.");
+            printPairedDeviceInfo();
             setAppState(APP_STATE_CONNECTED);
         } else {
             // disconnected, forget bleDevice
-            System.println("Disconnected! Clearing bleDevice.");
+            Debug.log("Disconnected! Clearing bleDevice.");
             self.pairedDevice = null;
             setAppState(APP_STATE_IDLE);
         }
@@ -171,14 +217,15 @@ class BleDiscoverModel extends Ble.BleDelegate {
 
     // TODO XXX when starting scanning again, we probably want to disconnect/forget about last paired bramator
     function onScanStateChange(scanState, status) {
-        System.println("onScanStateChange: " + scanState + ", " + status);
+        Debug.log("onScanStateChange: " + scanState + ", " + status);
 
         updateScanState(scanState == Ble.SCAN_STATE_SCANNING);
         WatchUi.requestUpdate();
     }
 
-    function onProfileRegister(uuid, status) {
-        System.println("onProfileRegister: " + uuid + ", " + status);
+    function onProfileRegister(uuid, status as Ble.Status) {
+        var statusDescription = status == 0 ? "OK" : status;
+        Debug.log("onProfileRegister: " + uuid + ", " + statusDescription);
     }
 
     //! Handle the completion of a write operation on a characteristic
@@ -186,6 +233,6 @@ class BleDiscoverModel extends Ble.BleDelegate {
     //! @param status The BluetoothLowEnergy status indicating the result of the operation
     // will not be invoked when using WRITE_TYPE_DEFAULT during write.
     function onCharacteristicWrite(characteristic as Ble.Characteristic, status as Ble.Status) as Void {
-        System.println("onbCharacteristicWrite: " + characteristic + ", " + status);
+        Debug.log("onbCharacteristicWrite: " + characteristic + ", " + status);
     }
 }
