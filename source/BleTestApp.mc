@@ -12,11 +12,11 @@ class BleTestApp extends Application.AppBase {
 
     function onStart(state) {
         _model = new BleDiscoverModel();
-        _model.onStart();
+        _model.start();
         _controller = new BleDiscoverController(_model);
         _controller.onStart();
 
-        System.println("model and controller started");
+        Debug.log("model and controller started");
     }
 
     function onStop(state) {

@@ -14,7 +14,7 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
     }
 
     function onStart() {
-        System.println("BleDiscoverController on start");
+        Debug.log("BleDiscoverController on start");
         Ble.setDelegate(_model);
     }
 
@@ -22,20 +22,20 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
 
     // onSelect has too many details about model; they all should be hidden (probably in the model)
     function onSelect() {
-        System.println("onSelect");
+        Debug.log("onSelect");
 
-        System.println("APP_STATE_IDLE = " + self._model.app_state);
+        Debug.log("APP_STATE_IDLE = " + self._model.app_state);
 
         switch (self._model.app_state) {
             case APP_STATE_IDLE: {
                 // start scanning
-                System.println("Start scanning...");
+                Debug.log("Start scanning...");
                 Ble.setScanState(Ble.SCAN_STATE_SCANNING);
                 break;
             }
             case APP_STATE_CONNECTED: {
                 // do action
-                System.println("Perfrom action on BLE device.");
+                Debug.log("Perfrom action on BLE device.");
 
                 self._model.sendData();
                 WatchUi.requestUpdate();
@@ -47,7 +47,12 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
     }
 
     function onMenu() as Boolean {
-        System.println("onMenu");
+        Debug.log("onMenu");
+
+        // XXX TODO debug:
+        var d = { 1 => 3.14159 };
+        System.println(Pretty.dumps(d));
+
         WatchUi.requestUpdate();
         return true;
     }
