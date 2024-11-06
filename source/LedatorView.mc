@@ -5,17 +5,17 @@ import Toybox.Lang;
 using Toybox.System;
 using Toybox.WatchUi;
 
-class BleDiscoverView extends WatchUi.View {
-    hidden var _centerX;
-    hidden var _centerY;
-    hidden var _font;
-    hidden var _lineHeight;
+class LedatorView extends WatchUi.View {
+    hidden var _centerX as Number?;
+    hidden var _centerY as Number?;
+    hidden var _font as Number?;
+    hidden var _lineHeight as Number?;
 
-    hidden var _model;
+    hidden var _bleDelegate as BleDiscoverModel;
 
     function initialize(model) {
         View.initialize();
-        _model = model;
+        _bleDelegate = model;
     }
 
     function onLayout(dc) {
@@ -49,18 +49,18 @@ class BleDiscoverView extends WatchUi.View {
         showTextCentered(dc, ypos, "BACK to exit");
 
         ypos += _lineHeight;
-        showTextCentered(dc, ypos, self._model.payloadIdx);
+        showTextCentered(dc, ypos, self._bleDelegate.payloadIdx);
 
         drawInteractionHint(dc, Math.PI / 6, _centerX - 10);
     }
 
     function onUpdate(dc) {
-        Debug.log("View.onUpdate: " + self._model.app_state);
+        Debug.log("View.onUpdate: " + self._bleDelegate.app_state);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
         var color;
-        switch (self._model.app_state) {
+        switch (self._bleDelegate.app_state) {
             case APP_STATE_IDLE: {
                 drawInitialMenu(dc);
                 color = Graphics.COLOR_LT_GRAY;
@@ -79,16 +79,7 @@ class BleDiscoverView extends WatchUi.View {
         // show app state
         var ypos = 40;
         dc.setColor(color, Graphics.COLOR_BLACK);
-        dc.drawText(_centerX, ypos, _font, self._model.app_state, Graphics.TEXT_JUSTIFY_CENTER);
-    }
-
-    // angle in radians
-    function getPointOnRadius(x0, y0, angle, distance) {
-        // Calculate x and y coordinates of the point
-        var x = x0 + distance * Math.cos(angle);
-        var y = y0 - distance * Math.sin(angle);
-
-        return { "x" => x, "y" => y };
+        dc.drawText(_centerX, ypos, _font, self._bleDelegate.app_state, Graphics.TEXT_JUSTIFY_CENTER);
     }
 
     function drawInteractionHint(dc, angle, radius) {

@@ -24,7 +24,7 @@ class BleDiscoverModel extends Ble.BleDelegate {
         :characteristics => [
             {
                 :uuid => Ble.stringToUuid(CHARACTERISTIC_UUID),
-                :descriptors => [Ble.cccdUuid()]
+                // :descriptors => [Ble.cccdUuid()]
             }
         ]
     };
@@ -39,7 +39,7 @@ class BleDiscoverModel extends Ble.BleDelegate {
         Ble.registerProfile(self.profile);
     }
 
-    function onStop() {}
+    function stop() {}
 
     function serviceUUIDsAsArray() {
         return createArrayFromIterator(pairedDevice.getServices());
@@ -130,12 +130,6 @@ class BleDiscoverModel extends Ble.BleDelegate {
         
         var uuids = createArrayFromIterator(services);
         Debug.log("BD: Services list: " + Pretty.dumps(uuids));
-    
-
-        //       for (var result = services.next(); result != null; result = services.next()) {
-        //     ypos += _lineHeight;
-        //     dc.drawText(0, ypos, _font, result, _ljust);
-        // }
     }
 
     function printPairedDeviceInfo() {

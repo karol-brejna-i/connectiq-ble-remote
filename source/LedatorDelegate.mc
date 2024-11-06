@@ -4,18 +4,18 @@ using Toybox.System;
 using Toybox.WatchUi;
 using Toybox.BluetoothLowEnergy as Ble;
 
-class BleDiscoverController extends WatchUi.BehaviorDelegate {
+class LedatorDelegate extends WatchUi.BehaviorDelegate {
     hidden var _view;
-    hidden var _model;
+    hidden var _bleDelegate;
 
     function initialize(model) {
         BehaviorDelegate.initialize();
-        _model = model;
+        _bleDelegate = model;
     }
 
     function onStart() {
-        Debug.log("BleDiscoverController on start");
-        Ble.setDelegate(_model);
+        Debug.log("LedatorDelegate on start");
+        Ble.setDelegate(_bleDelegate);
     }
 
     function onStop() {}
@@ -24,9 +24,9 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
     function onSelect() {
         Debug.log("onSelect");
 
-        Debug.log("APP_STATE_IDLE = " + self._model.app_state);
+        Debug.log("APP_STATE_IDLE = " + self._bleDelegate.app_state);
 
-        switch (self._model.app_state) {
+        switch (self._bleDelegate.app_state) {
             case APP_STATE_IDLE: {
                 // start scanning
                 Debug.log("Start scanning...");
@@ -37,7 +37,7 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
                 // do action
                 Debug.log("Perfrom action on BLE device.");
 
-                self._model.sendData();
+                self._bleDelegate.sendData();
                 WatchUi.requestUpdate();
                 break;
             }
@@ -49,16 +49,12 @@ class BleDiscoverController extends WatchUi.BehaviorDelegate {
     function onMenu() as Boolean {
         Debug.log("onMenu");
 
-        // XXX TODO debug:
-        var d = { 1 => 3.14159 };
-        System.println(Pretty.dumps(d));
-
         WatchUi.requestUpdate();
         return true;
     }
 
     function getInitialView() {
-        _view = new BleDiscoverView(_model);
+        _view = new LedatorView(_bleDelegate);
         return [_view, self];
     }
 }
